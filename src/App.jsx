@@ -1,13 +1,11 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 // import Geolocation from "geolocation";
 import { useGeolocated } from "react-geolocated";
- 
 
 const App = () => {
-
-  const [data, setData] = useState({}) 
-  const [location, setLocation] = useState(''); 
+  const [data, setData] = useState({});
+  const [location, setLocation] = useState("");
   const { coords, isGeolocationAvailable, isGeolocationEnabled } =
     useGeolocated({
       positionOptions: {
@@ -15,37 +13,59 @@ const App = () => {
       },
       userDecisionTimeout: 5000,
     });
+  const [latandlon, setLatAndLon] = useState({
+    latitude: 40.73061,
+    longitude: -73.935242,
+  });
 
-    useEffect(() => {
-      if (coords) {
-        const { latitude, longitude } = coords;
-        setLocation({ latitude, longitude });
-      } 
-    }, []);
+  // console.log(coords);
+
+  // const getLocations = () => {
+  //   if (coords) {
+  //     const { latitude, longitude } = coords;
+  //     setLatAndLon({ latitude, longitude });
+  //   }
+  // }
+
+  // setInterval(() => {
+  //   getLocations();
+  // }, 2000);
 
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=cce69ccb8da066ae8be856b433c3328a`;
-    
-  const currentLocation = `https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=cce69ccb8da066ae8be856b433c3328a`;
 
+  const getLocations = () => {
+    const currentLocation = `https://api.openweathermap.org/data/2.5/weather?lat=${latandlon.latitude}&lon=${latandlon.longitude}&appid=cce69ccb8da066ae8be856b433c3328a`;
+    fetch(currentLocation)
+      .then((response) => response.json())
+      .then((response) => {
+        setData(response);
+        console.log(response);
+      });
+  };
 
   useEffect(() => {
-    axios.get(currentLocation).then((response) => setData(response.data));
+    getLocations();
   }, []);
+
+  useEffect(() => {
+    if (coords) {
+      const { latitude, longitude } = coords;
+      setLatAndLon({ latitude, longitude });
+      getLocations();
+    }
+  }, [coords]);
 
   const searchLocation = (e) => {
     if (e.key === "Enter") {
-       axios.get(url).then((response) => {
-         setData(response.data);
-         
-       });
+      axios.get(url).then((response) => {
+        setData(response.data);
+      });
     }
-   
-    
-  }
+  };
 
   if (!isGeolocationAvailable) {
     return <div>Your browser does not support Geolocation</div>;
-  } else if(!isGeolocationEnabled) {
+  } else if (!isGeolocationEnabled) {
     return <div>Geolocation is not enabled</div>;
   }
   return (
